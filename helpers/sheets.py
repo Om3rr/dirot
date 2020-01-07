@@ -1,21 +1,35 @@
 from __future__ import print_function
-import pickle
+
 import os.path
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+import pickle
 from typing import List
+
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+
 
 
 class SheetsAPI():
+    GREEN = {
+        "red": 0.3,
+        "blue": 0.3,
+        "green": 1
+    }
+
+    RED = {
+        "red": 1,
+        "blue": 0.3,
+        "green": 0.3
+    }
     # If modifying these scopes, delete the file gmail.token.pickle.
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
     # The ID and range of a sample spreadsheet.
     SPREADSHEET_ID = '1YEPJCM-u2dab5ewhTCMgR31oivsDa8lY4Oaajzilpwk'
 
-    SENT_RANGE="Sheet1!J{row}:J{row}"
-    ROW_RANGE="Sheet1!A{row}:I{row}"
+    SENT_RANGE = "Sheet1!J{row}:J{row}"
+    ROW_RANGE = "Sheet1!A{row}:I{row}"
 
     @staticmethod
     def get_service():
@@ -52,17 +66,19 @@ class SheetsAPI():
         }
         valueInputOption = "RAW"
         return self.__service.values().append(spreadsheetId=SheetsAPI.SPREADSHEET_ID, valueInputOption=valueInputOption,
-                                range=SheetsAPI.ROW_RANGE.format(row=1), body=value_range_body).execute()
+                                              range=SheetsAPI.ROW_RANGE.format(row=1), body=value_range_body).execute()
 
     def get(self, row):
-        return self.__service.values().get(spreadsheetId=SheetsAPI.SPREADSHEET_ID, range=SheetsAPI.ROW_RANGE.format(row=row)).execute().get("values")
+        return self.__service.values().get(spreadsheetId=SheetsAPI.SPREADSHEET_ID,
+                                           range=SheetsAPI.ROW_RANGE.format(row=row)).execute().get("values")
 
     def get_all_ids(self):
-        return self.__service.values().get(spreadsheetId=SheetsAPI.SPREADSHEET_ID,
-                                           range="Sheet1!A2:A100000").execute().get("values")[0]
+        return [col[0] for col in self.__service.values().get(spreadsheetId=SheetsAPI.SPREADSHEET_ID,
+                                                              range="Sheet1!A2:A100000").execute().get("values")]
 
     def is_sent(self, row):
-        resp = self.__service.values().get(spreadsheetId=SheetsAPI.SPREADSHEET_ID, range=SheetsAPI.SENT_RANGE.format(row=row)).execute()
+        resp = self.__service.values().get(spreadsheetId=SheetsAPI.SPREADSHEET_ID,
+                                           range=SheetsAPI.SENT_RANGE.format(row=row)).execute()
         values = resp.get("values") or [[0]]
         return str(values[0][0]) == '1'
 
@@ -72,7 +88,33 @@ class SheetsAPI():
         }
         valueInputOption = "RAW"
         return self.__service.values().update(spreadsheetId=SheetsAPI.SPREADSHEET_ID, valueInputOption=valueInputOption,
-                                              range=SheetsAPI.SENT_RANGE.format(row=row), body=value_range_body).execute()
+                                              range=SheetsAPI.SENT_RANGE.format(row=row),
+                                              body=value_range_body).execute()
 
-
-
+    def mark_background(self, row, color):
+        if color == "green":
+            code = SheetsAPI.GREEN
+        else:
+            code = SheetsAPI.RED
+        value_range_body = {"requests": [
+            {"repeatCell":
+                {
+                    "range": {
+                    "sheetId": "0",
+                    "startRowIndex": int(row) - 1,
+                    "endRowIndex": int(row),
+                    "startColumnIndex": 0,
+                    "endColumnIndex": 11
+                },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": code,
+                        }
+                    },
+                    "fields": "userEnteredFormat(backgroundColor)"
+                }
+            }
+        ]}
+        valueInputOption = "RAW"
+        return self.__service.batchUpdate(spreadsheetId=SheetsAPI.SPREADSHEET_ID,
+                                                   body=value_range_body).execute()
