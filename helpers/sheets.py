@@ -28,8 +28,8 @@ class SheetsAPI():
     # The ID and range of a sample spreadsheet.
     SPREADSHEET_ID = '1YEPJCM-u2dab5ewhTCMgR31oivsDa8lY4Oaajzilpwk'
 
-    SENT_RANGE = "Sheet1!J{row}:J{row}"
-    ROW_RANGE = "Sheet1!A{row}:I{row}"
+    SENT_RANGE = "Sheet1!L{row}:L{row}"
+    ROW_RANGE = "Sheet1!A{row}:K{row}"
 
     @staticmethod
     def get_service():

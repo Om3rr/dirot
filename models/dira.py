@@ -1,7 +1,7 @@
 
 # id	street	city	rooms	floor	size	price
 class Dira():
-    def __init__(self, id, street, city, rooms, floor, size, price, condition, source, sent=0, row=None):
+    def __init__(self, id, street, city, rooms, floor, size, price, condition, elevator, source, sent=0, row=None):
         self.__id = id
         self.__street = street
         self.__city = city
@@ -10,12 +10,13 @@ class Dira():
         self.__size = size
         self.__price = price
         self.__condition = condition
+        self.__elevator = elevator
         self.__source = source
         self.__sent = sent
         self.__row = row
 
     def to_sheet(self):
-        return [self.__id, self.__street, self.__city, self.__rooms, self.__floor, self.__size, self.__price, self.__condition, self.__source]
+        return [self.__id, self.__street, self.__city, self.__rooms, self.__floor, self.__size, self.__price, self.__condition, self.__elevator, self.href, self.__source]
 
     @staticmethod
     def from_sheet(*args):
